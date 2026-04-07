@@ -965,7 +965,7 @@ canvas {
   font-weight: 600;
 }
 
-/* From Uiverse.io by Nawsome */ 
+/* From Uiverse.io by Nawsome */
 .switch {
   display: block;
   background-color: black;
@@ -981,20 +981,20 @@ canvas {
   display: none;
 }
 
-.switch input:checked + .button {
+.switch input:checked+.button {
   transform: translateZ(20px) rotateX(25deg);
   box-shadow: 0 -10px 20px #ff1818;
 }
 
-.switch input:checked + .button .light {
+.switch input:checked+.button .light {
   animation: flicker 0.2s infinite 0.3s;
 }
 
-.switch input:checked + .button .shine {
+.switch input:checked+.button .shine {
   opacity: 1;
 }
 
-.switch input:checked + .button .shadow {
+.switch input:checked+.button .shadow {
   opacity: 0;
 }
 
@@ -1082,14 +1082,27 @@ canvas {
 }
 
 @keyframes flicker {
-  0% { opacity: 1; }
-  80% { opacity: 0.8; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes light-off {
-  0% { opacity: 1; }
-  80% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 0;
+  }
 }
 
 .about-softwares {
@@ -1196,6 +1209,159 @@ canvas {
 }
 
 @keyframes scrollMarquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); } 
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* =============================================
+   RENDER MODAL STYLES
+   ============================================= */
+
+.render-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.render-modal-content {
+  background: rgba(15, 15, 15, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.render-modal-header {
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.render-modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.render-modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.render-modal-close:hover {
+  background: rgba(255, 40, 40, 0.2);
+  color: #ff3333;
+  transform: rotate(90deg);
+}
+
+.render-cards-grid {
+  padding: 3rem 2.5rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.render-cards-grid::-webkit-scrollbar {
+  width: 8px;
+}
+.render-cards-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.render-cards-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.render-cards-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.render-card {
+  aspect-ratio: 1/1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: crosshair;
+}
+
+.render-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+}
+
+.render-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.render-card:hover .render-card-img {
+  transform: scale(1.05);
+}
+
+.fallback-render {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-primary), monospace;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, rgba(20,20,20,1) 0%, rgba(10,10,10,1) 100%);
+}
+
+/* Hover Swap CSS */
+.hover-swap-card .img-default {
+  position: relative;
+  z-index: 3;
+  opacity: 1;
+}
+
+.hover-swap-card .img-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  opacity: 1; /* Altta her zaman sabit */
+}
+
+/* Hover durumunda üstteki (texture) yok olur, alttaki (clay) parlar */
+.hover-swap-card:hover .img-default {
+  opacity: 0;
 }

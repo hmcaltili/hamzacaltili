@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Project {
@@ -14,8 +14,174 @@ const projects: Project[] = [
   { id: 3, title: 'Bionluk', bgColor: '#0a0b14', logo: '/logo/3.png' },
   { id: 5, title: 'Takeover', bgColor: '#1a000a', logo: '/logo/Takeover.png' },
   { id: 6, title: 'Célenoir', bgColor: '#0a0a1a', logo: '/logo/Celenoir.png' },
+  { id: 7, title: 'Molecube', bgColor: '#141400', logo: '/logo/Molecube.png' },
+  { id: 8, title: 'Unity Asset Store', bgColor: '#101010', logo: '/logo/UnityAssetStore.png' },
   { id: 4, title: 'İbraş', bgColor: '#1a0a00', logo: '/logo/4.png' },
 ];
+
+const projectLinks: Record<number, string> = {
+  8: "https://assetstore.unity.com/packages/3d/environments/urban/low-poly-farm-construction-pack-buildings-vehicles-326393",
+  7: "https://www.instagram.com/molecube_design/",
+  6: "https://www.celenoir.com/tum-urunler",
+  5: "https://www.linkedin.com/company/takeover-technology/",
+  4: "https://www.ibras.com/"
+};
+
+function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const objectPixelsRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    img.src = claySrc;
+    img.onload = () => {
+      const { naturalWidth: w, naturalHeight: h } = img;
+      canvas.width = 1000;
+      canvas.height = 1000;
+
+      // Object-fit: cover mantığı (Canvas için)
+      let sx, sy, sWidth, sHeight;
+      const imageAspect = w / h;
+      const targetAspect = 1; // 1000/1000
+
+      if (imageAspect > targetAspect) {
+        // Görsel daha genişse: Boyu tam al, yanlardan kırp
+        sHeight = h;
+        sWidth = h * targetAspect;
+        sx = (w - sWidth) / 2;
+        sy = 0;
+      } else {
+        // Görsel daha dikeyse: Eni tam al, üstten/alttan kırp
+        sWidth = w;
+        sHeight = w / targetAspect;
+        sx = 0;
+        sy = (h - sHeight) / 2;
+      }
+
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, 1000, 1000);
+      
+      // Obje tespiti (Arka plandan ayırma) - Artık kırpılmış alan üzerinden
+      const clayData = ctx.getImageData(0, 0, 1000, 1000).data;
+      const objectIndices: number[] = [];
+      
+      for (let i = 0; i < clayData.length; i += 40) {
+        const r = clayData[i];
+        const g = clayData[i+1];
+        const b = clayData[i+2];
+        
+        if (r + g + b > 50) { 
+          objectIndices.push(i + 3);
+        }
+      }
+      objectPixelsRef.current = objectIndices;
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      console.log(`ScratchReveal: Adjusted for ${w}x${h} (Cover Mode). Found ${objectIndices.length} pixels.`);
+    };
+    img.onerror = () => {
+      console.error("ScratchReveal: Failed to load clay image at", claySrc);
+    };
+  }, [claySrc]);
+
+  const checkCompletion = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    try {
+      const imageData = ctx.getImageData(0, 0, width, height).data;
+      const objectIndices = objectPixelsRef.current;
+      if (objectIndices.length === 0) return;
+
+      let transparentObjectCount = 0;
+      
+      for (const index of objectIndices) {
+        if (imageData[index] < 150) {
+          transparentObjectCount++;
+        }
+      }
+
+      const percentage = (transparentObjectCount / objectIndices.length) * 100;
+      
+      // Konsolda ilerlemeyi görmek için
+      if (Math.random() > 0.9) console.log(`Object Colorize Progress: ${Math.round(percentage)}%`);
+
+      if (percentage > 80 && !isCompleted) { 
+        console.log("Reveal COMPLETED!");
+        setIsCompleted(true);
+        ctx.clearRect(0, 0, width, height);
+      }
+    } catch (err) {
+      console.warn("Canvas check error:", err);
+    }
+  };
+
+  const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isCompleted) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+
+    if ('touches' in e) {
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = (e as React.MouseEvent).clientX - rect.left;
+      y = (e as React.MouseEvent).clientY - rect.top;
+    }
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x * scaleX, y * scaleY, 60, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Periyodik tamamlama kontrolü
+    checkCompletion(ctx, canvas.width, canvas.height);
+  };
+
+  return (
+    <div className={`scratch-reveal-container ${isCompleted ? 'completed' : ''}`} style={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', borderRadius: '12px' }}>
+      <img src={textureSrc} alt="Texture" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+      
+      {!isCompleted && (
+        <canvas
+          ref={canvasRef}
+          onMouseMove={handleMove}
+          onTouchMove={handleMove}
+          style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            width: '100%', 
+            height: '100%', 
+            cursor: 'crosshair',
+            touchAction: 'none'
+          }}
+        />
+      )}
+      
+      <div className="scratch-hint-wrapper">
+        <motion.div
+          key={isCompleted ? "thanks" : "hint"}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className={`scratch-hint ${isCompleted ? 'completed-text' : ''}`}
+        >
+          {isCompleted ? "THANK YOU" : "COLORIZE MY RENDER"}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 export function FeaturedWorks() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -55,16 +221,16 @@ export function FeaturedWorks() {
                 transition={{ duration: 0.5, delay: index * 0.08 }}
                 viewport={{ once: true }}
                 className="stack-card"
-                onClick={() => {
-                  if (project.id === 6 || project.id === 4) { // Celenoir veya İbraş
-                    setSelectedProject(project);
-                  }
-                }}
                 style={{
                   backgroundColor: project.bgColor,
-                  marginLeft: index === 0 ? 0 : '-40px',
+                  marginLeft: index === 0 ? 0 : '-60px',
                   zIndex: projects.length - index,
-                  cursor: (project.id === 6 || project.id === 4) ? 'pointer' : 'default' // Tıklanabilir projeler
+                  cursor: (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) ? 'pointer' : 'default'
+                }}
+                onClick={() => {
+                  if (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) {
+                    setSelectedProject(project);
+                  }
                 }}
               >
                 {/* Shine overlay */}
@@ -82,7 +248,7 @@ export function FeaturedWorks() {
                 {/* Hover title pill */}
                 <div className="card-title-pill">
                   <span>{project.title}</span>
-                  {(project.id === 6 || project.id === 4) ? (
+                  {(project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M15 3h6v6" />
                       <path d="M9 21H3v-6" />
@@ -121,7 +287,25 @@ export function FeaturedWorks() {
               onClick={(e) => e.stopPropagation()} // Arkaya tıklanınca kapanması için
             >
               <div className="render-modal-header">
-                <h3>{selectedProject.title}</h3>
+                {projectLinks[selectedProject.id] ? (
+                  <a
+                    href={projectLinks[selectedProject.id]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {selectedProject.title}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </h3>
+                  </a>
+                ) : (
+                  <h3>{selectedProject.title}</h3>
+                )}
                 <button className="render-modal-close" onClick={() => setSelectedProject(null)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -129,42 +313,80 @@ export function FeaturedWorks() {
                   </svg>
                 </button>
               </div>
-              
-              <div className="render-cards-grid">
+
+              <div className={`render-cards-grid ${selectedProject?.id === 5 ? 'grid-3x2' : ''}`}>
                 {selectedProject.id === 6 && (
-                  <div className="render-card hover-swap-card">
-                    <span style={{ position: 'absolute', zIndex: 1, pointerEvents: 'none', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Yükleniyor...
-                    </span>
-                    <img 
-                      src={`/renders/clay.png`} 
-                      alt="Célenoir Clay Render" 
-                      className="render-card-img img-hover"
-                    />
-                    <img 
-                      src={`/renders/texture.png`} 
-                      alt="Célenoir Texture Render" 
-                      className="render-card-img img-default"
-                    />
-                  </div>
+                  <ScratchReveal 
+                    claySrc="/renders/clay.png" 
+                    textureSrc="/renders/texture.png" 
+                  />
                 )}
 
                 {selectedProject.id === 4 && [1, 2, 3].map((num) => (
-                  <div key={`ibras-${num}`} className="render-card hover-swap-card">
-                    <span style={{ position: 'absolute', zIndex: 1, pointerEvents: 'none', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Yükleniyor...
-                    </span>
+                  <div key={`ibras-${num}`} className="render-card hover-swap-card molecube-card">
                     {/* Hover Yapıldığında Görünecek Görsel (Clay) - Alta Yerleştirilir */}
-                    <img 
-                      src={`/renders/ibras/${num}clay.png`} 
-                      alt={`İbraş Clay Render ${num}`} 
+                    <img
+                      src={`/renders/ibras/${num}clay.png`}
+                      alt={`İbraş Clay Render ${num}`}
                       className="render-card-img img-hover"
                     />
                     {/* Varsayılan Görsel (Texture) - Üste Yerleştirilir ve Hover'da Silikleşir */}
-                    <img 
-                      src={`/renders/ibras/${num}texture.png`} 
-                      alt={`İbraş Texture Render ${num}`} 
+                    <img
+                      src={`/renders/ibras/${num}texture.png`}
+                      alt={`İbraş Texture Render ${num}`}
                       className="render-card-img img-default"
+                    />
+                  </div>
+                ))}
+
+                {selectedProject.id === 5 && [
+                  { name: 'pistol', tex: '_texture', clay: '_clay' },
+                  { name: 'magazine_out', tex: '', clay: '_clay' },
+                  { name: 'rifle', tex: '_texture', clay: '_clay' },
+                  { name: 'meat', tex: '_texture', clay: '_clay' },
+                  { name: 'fridge', tex: '_texture', clay: '_clay' },
+                  { name: 'corner', tex: '_texture', clay: '_clay' }
+                ].map((item) => (
+                  <div key={`takeover-${item.name}`} className="render-card molecube-card hover-swap-card">
+                    <img
+                      src={`/renders/takeover/${item.name}${item.clay}.png`}
+                      alt={`${item.name} Clay Render`}
+                      className="render-card-img img-hover"
+                    />
+                    <img
+                      src={`/renders/takeover/${item.name}${item.tex}.png`}
+                      alt={`${item.name} Texture Render`}
+                      className="render-card-img img-default"
+                    />
+                  </div>
+                ))}
+
+                {selectedProject.id === 7 && ['batman', 'fc', 'harry', 'starwars'].map((name) => (
+                  <div key={`molecube-${name}`} className="render-card molecube-card hover-swap-card">
+                    <img
+                      src={`/renders/Molecube/${name}_clay.png`}
+                      alt={`${name} Clay Render`}
+                      className="render-card-img img-hover"
+                      onError={(e) => {
+                        // Eğer clay görseli yoksa grayscale filtre ile simüle et (fallback)
+                        (e.target as HTMLImageElement).style.filter = 'grayscale(1) brightness(0.7)';
+                        (e.target as HTMLImageElement).src = `/renders/Molecube/${name}.png`;
+                      }}
+                    />
+                    <img
+                      src={`/renders/Molecube/${name}.png`}
+                      alt={`${name} Texture Render`}
+                      className="render-card-img img-default"
+                    />
+                  </div>
+                ))}
+
+                {selectedProject.id === 8 && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
+                  <div key={`unity-${num}`} className="render-card">
+                    <img
+                      src={`/renders/unity/${num}.png`}
+                      alt={`Unity Render ${num}`}
+                      className="render-card-img"
                     />
                   </div>
                 ))}

@@ -402,21 +402,10 @@ export function FeaturedWorks() {
                         <div className="sketchfab-embed-wrapper" style={{ width: '100%', height: '100%' }}>
                           <iframe
                             title={model.title}
-                            frameBorder="0"
-                            allowFullScreen
-                            mozallowfullscreen="true"
-                            webkitallowfullscreen="true"
-                            allow="autoplay; fullscreen; xr-spatial-tracking"
-                            // @ts-ignore
-                            xr-spatial-tracking="true"
-                            // @ts-ignore
-                            execution-while-out-of-viewport="true"
-                            // @ts-ignore
-                            execution-while-not-rendered="true"
-                            // @ts-ignore
-                            web-share="true"
-                            style={{ width: '100%', height: '100%', border: 'none' }}
                             src={`https://sketchfab.com/models/${model.id}/embed?autostart=1&preload=1`}
+                            allowFullScreen
+                            allow="autoplay; fullscreen; xr-spatial-tracking; web-share"
+                            style={{ width: '100%', height: '100%', border: 'none' }}
                           />
                         </div>
                       </div>

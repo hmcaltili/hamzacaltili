@@ -1321,6 +1321,55 @@ canvas {
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Category Tabs (Gamestein) */
+.render-category-tabs {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem 2.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.category-tab {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 0.75rem 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-primary), monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.category-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.category-tab.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.category-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #ffffff;
+  box-shadow: 0 -2px 10px rgba(255, 255, 255, 0.5);
+}
+
 .render-card {
   aspect-ratio: 1/1;
   background: rgba(0, 0, 0, 0.4);

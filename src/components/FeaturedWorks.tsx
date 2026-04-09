@@ -24,7 +24,9 @@ const projectLinks: Record<number, string> = {
   7: "https://www.instagram.com/molecube_design/",
   6: "https://www.celenoir.com/tum-urunler",
   5: "https://www.linkedin.com/company/takeover-technology/",
-  4: "https://www.ibras.com/"
+  2: "https://www.linkedin.com/company/gamestein/",
+  4: "https://www.ibras.com/",
+  3: "https://bionluk.com/hmcaltili"
 };
 
 function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: string }) {
@@ -65,17 +67,17 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
       }
 
       ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, 1000, 1000);
-      
+
       // Obje tespiti (Arka plandan ayırma) - Artık kırpılmış alan üzerinden
       const clayData = ctx.getImageData(0, 0, 1000, 1000).data;
       const objectIndices: number[] = [];
-      
+
       for (let i = 0; i < clayData.length; i += 40) {
         const r = clayData[i];
-        const g = clayData[i+1];
-        const b = clayData[i+2];
-        
-        if (r + g + b > 50) { 
+        const g = clayData[i + 1];
+        const b = clayData[i + 2];
+
+        if (r + g + b > 50) {
           objectIndices.push(i + 3);
         }
       }
@@ -97,7 +99,7 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
       if (objectIndices.length === 0) return;
 
       let transparentObjectCount = 0;
-      
+
       for (const index of objectIndices) {
         if (imageData[index] < 150) {
           transparentObjectCount++;
@@ -105,11 +107,11 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
       }
 
       const percentage = (transparentObjectCount / objectIndices.length) * 100;
-      
+
       // Konsolda ilerlemeyi görmek için
       if (Math.random() > 0.9) console.log(`Object Colorize Progress: ${Math.round(percentage)}%`);
 
-      if (percentage > 80 && !isCompleted) { 
+      if (percentage > 80 && !isCompleted) {
         console.log("Reveal COMPLETED!");
         setIsCompleted(true);
         ctx.clearRect(0, 0, width, height);
@@ -152,23 +154,23 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
   return (
     <div className={`scratch-reveal-container ${isCompleted ? 'completed' : ''}`} style={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', borderRadius: '12px' }}>
       <img src={textureSrc} alt="Texture" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-      
+
       {!isCompleted && (
         <canvas
           ref={canvasRef}
           onMouseMove={handleMove}
           onTouchMove={handleMove}
-          style={{ 
-            position: 'absolute', 
-            inset: 0, 
-            width: '100%', 
-            height: '100%', 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
             cursor: 'crosshair',
             touchAction: 'none'
           }}
         />
       )}
-      
+
       <div className="scratch-hint-wrapper">
         <motion.div
           key={isCompleted ? "thanks" : "hint"}
@@ -185,6 +187,7 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
 
 export function FeaturedWorks() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [gamesteinCategory, setGamesteinCategory] = useState<'buildings' | 'fruits' | 'characters'>('buildings');
 
   // Modal açıkken body scroll'unu kilitle
   useEffect(() => {
@@ -225,10 +228,10 @@ export function FeaturedWorks() {
                   backgroundColor: project.bgColor,
                   marginLeft: index === 0 ? 0 : '-60px',
                   zIndex: projects.length - index,
-                  cursor: (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) ? 'pointer' : 'default'
+                  cursor: (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default'
                 }}
                 onClick={() => {
-                  if (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) {
+                  if (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
                     setSelectedProject(project);
                   }
                 }}
@@ -248,7 +251,7 @@ export function FeaturedWorks() {
                 {/* Hover title pill */}
                 <div className="card-title-pill">
                   <span>{project.title}</span>
-                  {(project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5) ? (
+                  {(project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M15 3h6v6" />
                       <path d="M9 21H3v-6" />
@@ -314,11 +317,33 @@ export function FeaturedWorks() {
                 </button>
               </div>
 
+              {/* Gamestein Sub-Navigation (Category Folders) */}
+              {selectedProject.id === 2 && (
+                <div className="render-category-tabs">
+                  {[
+                    { id: 'buildings', label: 'Buildings', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+                    { id: 'fruits', label: 'Fruits', icon: 'M12 22c4.97 0 9-3.582 9-8s-4.03-8-9-8-9 3.582-9 8 4.03 8 9 8z M12 6V2' },
+                    { id: 'characters', label: 'Characters', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8z' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      className={`category-tab ${gamesteinCategory === cat.id ? 'active' : ''}`}
+                      onClick={() => setGamesteinCategory(cat.id as any)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d={cat.icon} />
+                      </svg>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className={`render-cards-grid ${selectedProject?.id === 5 ? 'grid-3x2' : ''}`}>
                 {selectedProject.id === 6 && (
-                  <ScratchReveal 
-                    claySrc="/renders/clay.png" 
-                    textureSrc="/renders/texture.png" 
+                  <ScratchReveal
+                    claySrc="/renders/clay.png"
+                    textureSrc="/renders/texture.png"
                   />
                 )}
 
@@ -334,6 +359,81 @@ export function FeaturedWorks() {
                     <img
                       src={`/renders/ibras/${num}texture.png`}
                       alt={`İbraş Texture Render ${num}`}
+                      className="render-card-img img-default"
+                    />
+                  </div>
+                ))}
+
+                {selectedProject.id === 2 && (
+                  <>
+                    {gamesteinCategory === 'buildings' && Array.from({ length: 27 }, (_, i) => i + 1).map((num) => (
+                      <div key={`gs-buildings-${num}`} className="render-card molecube-card hover-swap-card">
+                        <img
+                          src={`/renders/gamestein/buildings/${num}clay.png`}
+                          alt={`Building Clay ${num}`}
+                          className="render-card-img img-hover"
+                        />
+                        <img
+                          src={`/renders/gamestein/buildings/${num}texture.png`}
+                          alt={`Building Texture ${num}`}
+                          className="render-card-img img-default"
+                        />
+                      </div>
+                    ))}
+                    {gamesteinCategory === 'fruits' && Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                      <div key={`gs-fruits-${num}`} className="render-card molecube-card hover-swap-card">
+                        <img
+                          src={`/renders/gamestein/fruits/f${num}clay.png`}
+                          alt={`Fruit Clay ${num}`}
+                          className="render-card-img img-hover"
+                        />
+                        <img
+                          src={`/renders/gamestein/fruits/f${num}texture.png`}
+                          alt={`Fruit Texture ${num}`}
+                          className="render-card-img img-default"
+                        />
+                      </div>
+                    ))}
+                    {gamesteinCategory === 'characters' && [
+                      { title: "Michi(Gamestein)", id: "710b17560c004022bf272d69eae0cc69" },
+                      { title: "Mano(Gamestein)", id: "60ccfedcd1184282aa75bbde7702403a" }
+                    ].map((model) => (
+                      <div key={model.id} className="render-card molecube-card" style={{ cursor: 'default' }}>
+                        <div className="sketchfab-embed-wrapper" style={{ width: '100%', height: '100%' }}>
+                          <iframe
+                            title={model.title}
+                            frameBorder="0"
+                            allowFullScreen
+                            mozallowfullscreen="true"
+                            webkitallowfullscreen="true"
+                            allow="autoplay; fullscreen; xr-spatial-tracking"
+                            // @ts-ignore
+                            xr-spatial-tracking="true"
+                            // @ts-ignore
+                            execution-while-out-of-viewport="true"
+                            // @ts-ignore
+                            execution-while-not-rendered="true"
+                            // @ts-ignore
+                            web-share="true"
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            src={`https://sketchfab.com/models/${model.id}/embed?autostart=1&preload=1`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {selectedProject.id === 3 && [1, 2, 3, 4, 5].map((num) => (
+                  <div key={`bionluk-${num}`} className="render-card molecube-card hover-swap-card">
+                    <img
+                      src={`/renders/bionluk/${num}clay.png`}
+                      alt={`Bionluk Clay Render ${num}`}
+                      className="render-card-img img-hover"
+                    />
+                    <img
+                      src={`/renders/bionluk/${num}texture.png`}
+                      alt={`Bionluk Texture Render ${num}`}
                       className="render-card-img img-default"
                     />
                   </div>

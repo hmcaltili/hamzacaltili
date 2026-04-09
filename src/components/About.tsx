@@ -7,13 +7,35 @@ export function About() {
 
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.checked) {
-      setJumpscareStep('video');
+      // Ses motorunu uyandır ve videoyu başlat
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1;
+        videoRef.current.currentTime = 0;
+        videoRef.current.play().then(() => {
+          // Video oynamaya başladığında (ses hazır olduğunda) gösterimi başlat
+          setJumpscareStep('video');
+        }).catch(err => {
+          console.error("Video play failed:", err);
+          setJumpscareStep('video');
+        });
+      } else {
+        setJumpscareStep('video');
+      }
     }
   };
 
+  const preloadVideo = () => {
+    if (videoRef.current && jumpscareStep === 'idle') {
+      videoRef.current.load();
+    }
+  };
+
+  // Video bittiğinde veya iptal edildiğinde temizlik
   useEffect(() => {
-    if (jumpscareStep === 'video' && videoRef.current) {
-      videoRef.current.play().catch(e => console.error(e));
+    if (jumpscareStep === 'idle' && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
   }, [jumpscareStep]);
 
@@ -119,7 +141,7 @@ export function About() {
           </motion.div>
 
           <div style={{ marginTop: '7rem', display: 'flex', justifyContent: 'center' }}>
-            <label className="switch">
+            <label className="switch" onMouseEnter={preloadVideo} onPointerEnter={preloadVideo}>
               <input type="checkbox" defaultChecked onChange={handleSwitchChange} />
               <div className="button">
                 <div className="light"></div>

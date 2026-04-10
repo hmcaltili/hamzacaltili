@@ -516,23 +516,199 @@ canvas {
 }
 
 @media (max-width: 768px) {
-  .ui-container {
+  .ui-header {
     padding: 1.5rem;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
   }
 
   .nav-links {
     display: none;
   }
 
-  .ui-footer {
+  .nav-right {
+    display: none; /* Mobilde header'da gizle, menüye alacağız veya basitleştireceğiz */
+  }
+
+  /* Burger Menu Button */
+  .burger-menu {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 10001;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    pointer-events: auto;
+  }
+
+  .burger-line {
+    width: 24px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .burger-line.open:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+  .burger-line.open:nth-child(2) { opacity: 0; }
+  .burger-line.open:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+  /* Mobile Menu Overlay */
+  .mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(20px);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .mobile-menu-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .mobile-menu-content a {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    font-family: var(--font-primary), sans-serif;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-menu-divider {
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-resume-link {
+    background: var(--text-primary);
+    color: var(--bg-dark-1) !important;
+    padding: 1rem 2.5rem;
+    border-radius: 3rem;
+  }
+
+  .ui-footer {
+    padding: 0 1.5rem 3rem;
+    flex-direction: column;
+    align-items: center;
     gap: 2rem;
   }
 
   .scroll-down-arrow {
     display: none;
-    /* İsteğe bağlı: Mobilde gizlemek isterseniz kalabilir, şimdilik gösteriyoruz diyerek silmiyoruz, but as the old one was hidden we keep the same logic or show it. Let's show it by removing the display none. */
+  }
+
+  .ui-header {
+    padding: 1.5rem !important; /* Header alanını küçülttük */
+  }
+
+  .ui-footer {
+    padding: 1.5rem !important;
+  }
+
+  .role-text {
+    font-size: 0.8rem !important; /* Yazıyı mobilde küçülttük */
+    letter-spacing: 0.1em !important;
+  }
+
+  /* Hero / Machine Scaling for Mobile */
+  .ui-main.image-stack-container {
+    transform: scale(0.9); /* Biraz daha makul bir ölçek but still large */
+    transform-origin: bottom center;
+    margin-top: 0;
+    display: flex;
+    justify-content: flex-end; /* İçeriği alta yasla */
+    height: 100%;
+  }
+
+  .image-stack {
+    height: 100%;
+    width: 100%;
+    align-items: flex-end !important; /* Resimleri altına yasla */
+  }
+
+  .stacked-image {
+    object-position: bottom center !important; /* Resmin kendisini altına yasla */
+  }
+
+  .vertical-scanner {
+    height: 80vh; /* Daha uzun çizgi */
+    top: auto !important;
+    bottom: 0 !important;
+    transform: none !important;
+  }
+
+  /* Swipable Card Stack Styles */
+  .card-stack-wrapper.mobile-stack {
+    height: 350px;
+    padding: 0;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Gallery Grid Focus */
+  .render-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .about-container {
+    padding: 0 1.5rem 5rem;
+  }
+
+  .about-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    text-align: center;
+  }
+
+  .about-bio h3 {
+    font-size: 1.8rem;
+  }
+
+  .software-grid {
+    justify-content: center;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .about-title {
+    font-size: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .category-tabs {
+    overflow-x: auto;
+    width: 100%;
+    justify-content: flex-start;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-tab {
+    white-space: nowrap;
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -887,6 +1063,10 @@ canvas {
       rgba(0, 0, 0, 0.2) 100%);
   pointer-events: none;
   transition: opacity 0.3s ease;
+}
+
+.burger-menu {
+  display: none;
 }
 
 .stack-card:hover .card-shine {
@@ -1458,6 +1638,53 @@ canvas {
   transform: none !important;
   border: 1px solid #ffffff !important;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.about-bio-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Biyografi paragrafları arasındaki boşluğu küçülttük */
+  align-items: center;
+}
+
+.about-bio-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.read-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 3rem;
+  font-family: var(--font-primary), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(5px);
+}
+
+.read-more-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.read-more-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.read-more-btn:hover svg {
+  transform: translateY(2px);
 }
 
 .render-card-img {

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { translations } from '../translations';
 import type { Lang } from '../translations';
@@ -9,8 +9,17 @@ interface AboutProps {
 
 export function About({ lang }: AboutProps) {
   const [jumpscareStep, setJumpscareStep] = useState<'idle' | 'video' | 'text'>('idle');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const t = translations[lang];
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.checked) {
@@ -29,13 +38,19 @@ export function About({ lang }: AboutProps) {
       } else {
         setJumpscareStep('video');
       }
+    } else {
+      setJumpscareStep('idle');
     }
   };
 
   const preloadVideo = () => {
-    if (videoRef.current && jumpscareStep === 'idle') {
+    if (videoRef.current) {
       videoRef.current.load();
     }
+  };
+
+  const handleVideoEnded = () => {
+    setJumpscareStep('text');
   };
 
   // Video bittiğinde veya iptal edildiğinde temizlik
@@ -113,10 +128,51 @@ export function About({ lang }: AboutProps) {
             viewport={{ once: true }}
             className="about-content"
           >
-            <p>{t.about.bio1}</p>
-            <p>{t.about.bio2}</p>
-            <p>{t.about.bio3}</p>
-            <p>{t.about.bio4}</p>
+            <div className="about-bio-wrapper">
+              <p>{t.about.bio1}</p>
+              
+              <AnimatePresence>
+                {(!isMobile || isExpanded) && (
+                  <motion.div
+                    initial={isMobile ? { opacity: 0, height: 0 } : { opacity: 1, height: 'auto' }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    style={{ overflow: 'hidden' }}
+                    className="about-bio-expanded"
+                  >
+                    <p>{t.about.bio2}</p>
+                    <p>{t.about.bio3}</p>
+                    <p>{t.about.bio4}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {isMobile && (
+                <button 
+                  className={`read-more-btn ${isExpanded ? 'expanded' : ''}`} 
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded 
+                    ? (lang === 'tr' ? 'Daha Az Gör' : 'Read Less')
+                    : (lang === 'tr' ? 'Devamını Oku' : 'Read More')
+                  }
+                  <svg 
+                    width="12" 
+                    height="12" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="3" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+              )}
+            </div>
           </motion.div>
 
           <motion.div

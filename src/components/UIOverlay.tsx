@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { translations } from '../translations';
 import type { Lang } from '../translations';
 
@@ -11,6 +12,7 @@ export const UIOverlay = ({ lang, setLang }: UIOverlayProps) => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isManual, setIsManual] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const t = translations[lang];
 
@@ -215,6 +217,39 @@ export const UIOverlay = ({ lang, setLang }: UIOverlayProps) => {
               <div className="logo">Hamza Çaltılı</div>
             </div>
           </div>
+
+          <div className="burger-menu" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <div className={`burger-line ${isMenuOpen ? 'open' : ''}`}></div>
+            <div className={`burger-line ${isMenuOpen ? 'open' : ''}`}></div>
+            <div className={`burger-line ${isMenuOpen ? 'open' : ''}`}></div>
+          </div>
+
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div 
+                className="mobile-menu-overlay"
+                initial={{ opacity: 0, x: '100%' }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              >
+                <div className="mobile-menu-content">
+                  <a href="#work" onClick={() => setIsMenuOpen(false)}>{t.nav.work}</a>
+                  <a href="#about" onClick={() => setIsMenuOpen(false)}>{t.nav.about}</a>
+                  <a href="#contact" onClick={() => setIsMenuOpen(false)}>{t.nav.contact}</a>
+                  <div className="mobile-menu-divider" />
+                  <a 
+                    href="/CV/Hamza_Caltili_CV.pdf" 
+                    download="Hamza_Caltili_CV.pdf" 
+                    className="mobile-resume-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t.nav.resume}
+                  </a>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <nav className="nav-links">
             <a href="#work">{t.nav.work}</a>

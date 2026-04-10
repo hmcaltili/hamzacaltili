@@ -195,7 +195,18 @@ interface FeaturedWorksProps {
 export function FeaturedWorks({ lang }: FeaturedWorksProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [gamesteinCategory, setGamesteinCategory] = useState<'buildings' | 'fruits' | 'characters'>('buildings');
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileStackIndex, setMobileStackIndex] = useState(0);
+
   const t = translations[lang];
+
+  // Ekran genişliğini takip et
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Modal açıkken body scroll'unu kilitle
   useEffect(() => {
@@ -208,6 +219,16 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
       document.body.style.overflow = '';
     };
   }, [selectedProject]);
+
+  const handleMobileStackDrag = (event: any, info: any) => {
+    if (!isMobile) return;
+    const threshold = 50;
+    if (info.offset.x < -threshold && mobileStackIndex < projects.length - 1) {
+      setMobileStackIndex(prev => prev + 1);
+    } else if (info.offset.x > threshold && mobileStackIndex > 0) {
+      setMobileStackIndex(prev => prev - 1);
+    }
+  };
 
   return (
     <>
@@ -223,58 +244,76 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
             {t.work.title}
           </motion.h2>
 
-          <div className="card-stack-wrapper">
-            {projects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, x: -60, rotateZ: -15, rotateY: -20 }}
-                whileInView={{ opacity: 1, x: 0, rotateZ: -10, rotateY: -15 }}
-                transition={{ duration: 0.5, delay: index * 0.08 }}
-                viewport={{ once: true }}
-                className="stack-card"
-                style={{
-                  backgroundColor: project.bgColor,
-                  marginLeft: index === 0 ? 0 : '-60px',
-                  zIndex: projects.length - index,
-                  cursor: (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default'
-                }}
-                onClick={() => {
-                  if (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
-                    setSelectedProject(project);
-                  }
-                }}
-              >
-                {/* Shine overlay */}
-                <div className="card-shine" />
+          <div className={`card-stack-wrapper ${isMobile ? 'mobile-stack' : ''}`}>
+            {projects.map((project, index) => {
+              // Mobil için özel hesaplamalar
+              const isCurrent = index === mobileStackIndex;
+              const isPast = index < mobileStackIndex;
+              const diff = index - mobileStackIndex;
 
-                {/* Logo */}
-                <div className="card-logo-wrapper">
-                  <img
-                    src={project.logo}
-                    alt={project.title}
-                    className="card-logo"
-                  />
-                </div>
+              return (
+                <motion.div
+                  key={project.id}
+                  drag={isMobile ? "x" : false}
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={handleMobileStackDrag}
+                  initial={{ opacity: 0, x: -60, rotateZ: -15, rotateY: -20 }}
+                  whileInView={!isMobile ? { opacity: 1, x: 0, rotateZ: -10, rotateY: -15 } : {}}
+                  animate={isMobile ? {
+                    x: diff * 20, // Mobilde daha sıkışık
+                    scale: isCurrent ? 1 : 0.9,
+                    opacity: isPast ? 0 : 1 - (Math.abs(diff) * 0.15),
+                    zIndex: projects.length - index + (isCurrent ? 100 : 0),
+                    rotateZ: isCurrent ? -5 : -10,
+                  } : {}}
+                  transition={{ duration: 0.5, delay: isMobile ? 0 : index * 0.08 }}
+                  viewport={{ once: true }}
+                  className={`stack-card ${isCurrent ? 'current' : ''}`}
+                  style={{
+                    backgroundColor: project.bgColor,
+                    marginLeft: !isMobile ? (index === 0 ? 0 : '-60px') : '0',
+                    zIndex: projects.length - index,
+                    cursor: (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default',
+                    position: isMobile ? 'absolute' : 'relative',
+                  }}
+                  onClick={() => {
+                    if (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
+                      setSelectedProject(project);
+                    }
+                  }}
+                >
+                  {/* Shine overlay */}
+                  <div className="card-shine" />
 
-                {/* Hover title pill */}
-                <div className="card-title-pill">
-                  <span>{project.title}</span>
-                  {(project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M15 3h6v6" />
-                      <path d="M9 21H3v-6" />
-                      <path d="M21 3l-7 7" />
-                      <path d="M3 21l7-7" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                  {/* Logo */}
+                  <div className="card-logo-wrapper">
+                    <img
+                      src={project.logo}
+                      alt={project.title}
+                      className="card-logo"
+                    />
+                  </div>
+
+                  {/* Hover title pill */}
+                  <div className="card-title-pill">
+                    <span>{project.title}</span>
+                    {(project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 3h6v6" />
+                        <path d="M9 21H3v-6" />
+                        <path d="M21 3l-7 7" />
+                        <path d="M3 21l7-7" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                      </svg>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

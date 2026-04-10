@@ -50,19 +50,16 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
       canvas.width = 1000;
       canvas.height = 1000;
 
-      // Object-fit: cover mantığı (Canvas için)
       let sx, sy, sWidth, sHeight;
       const imageAspect = w / h;
-      const targetAspect = 1; // 1000/1000
+      const targetAspect = 1;
 
       if (imageAspect > targetAspect) {
-        // Görsel daha genişse: Boyu tam al, yanlardan kırp
         sHeight = h;
         sWidth = h * targetAspect;
         sx = (w - sWidth) / 2;
         sy = 0;
       } else {
-        // Görsel daha dikeyse: Eni tam al, üstten/alttan kırp
         sWidth = w;
         sHeight = w / targetAspect;
         sx = 0;
@@ -71,7 +68,6 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
 
       ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, 1000, 1000);
 
-      // Obje tespiti (Arka plandan ayırma) - Artık kırpılmış alan üzerinden
       const clayData = ctx.getImageData(0, 0, 1000, 1000).data;
       const objectIndices: number[] = [];
 
@@ -79,19 +75,13 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
         const r = clayData[i];
         const g = clayData[i + 1];
         const b = clayData[i + 2];
-
         if (r + g + b > 50) {
           objectIndices.push(i + 3);
         }
       }
       objectPixelsRef.current = objectIndices;
-
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      console.log(`ScratchReveal: Adjusted for ${w}x${h} (Cover Mode). Found ${objectIndices.length} pixels.`);
-    };
-    img.onerror = () => {
-      console.error("ScratchReveal: Failed to load clay image at", claySrc);
     };
   }, [claySrc]);
 
@@ -102,7 +92,6 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
       if (objectIndices.length === 0) return;
 
       let transparentObjectCount = 0;
-
       for (const index of objectIndices) {
         if (imageData[index] < 150) {
           transparentObjectCount++;
@@ -110,12 +99,7 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
       }
 
       const percentage = (transparentObjectCount / objectIndices.length) * 100;
-
-      // Konsolda ilerlemeyi görmek için
-      if (Math.random() > 0.9) console.log(`Object Colorize Progress: ${Math.round(percentage)}%`);
-
       if (percentage > 80 && !isCompleted) {
-        console.log("Reveal COMPLETED!");
         setIsCompleted(true);
         ctx.clearRect(0, 0, width, height);
       }
@@ -150,7 +134,6 @@ function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, texture
     ctx.arc(x * scaleX, y * scaleY, 60, 0, Math.PI * 2);
     ctx.fill();
 
-    // Periyodik tamamlama kontrolü
     checkCompletion(ctx, canvas.width, canvas.height);
   };
 
@@ -200,7 +183,6 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
 
   const t = translations[lang];
 
-  // Ekran genişliğini takip et
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -208,7 +190,6 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Modal açıkken body scroll'unu kilitle
   useEffect(() => {
     if (selectedProject) {
       document.body.style.overflow = 'hidden';
@@ -220,7 +201,7 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
     };
   }, [selectedProject]);
 
-  const handleMobileStackDrag = (event: any, info: any) => {
+  const handleMobileStackDrag = (_event: any, info: any) => {
     if (!isMobile) return;
     const threshold = 50;
     if (info.offset.x < -threshold && mobileStackIndex < projects.length - 1) {
@@ -246,7 +227,6 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
 
           <div className={`card-stack-wrapper ${isMobile ? 'mobile-stack' : ''}`}>
             {projects.map((project, index) => {
-              // Mobil için özel hesaplamalar
               const isCurrent = index === mobileStackIndex;
               const isPast = index < mobileStackIndex;
               const diff = index - mobileStackIndex;
@@ -257,10 +237,10 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                   drag={isMobile ? "x" : false}
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={handleMobileStackDrag}
-                  initial={{ opacity: 0, x: -60, rotateZ: -15, rotateY: -20 }}
+                  initial={!isMobile ? { opacity: 0, x: -60, rotateZ: -15, rotateY: -20 } : false}
                   whileInView={!isMobile ? { opacity: 1, x: 0, rotateZ: -10, rotateY: -15 } : {}}
                   animate={isMobile ? {
-                    x: diff * 20, // Mobilde daha sıkışık
+                    x: diff * 20,
                     scale: isCurrent ? 1 : 0.9,
                     opacity: isPast ? 0 : 1 - (Math.abs(diff) * 0.15),
                     zIndex: projects.length - index + (isCurrent ? 100 : 0),
@@ -273,43 +253,20 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                     backgroundColor: project.bgColor,
                     marginLeft: !isMobile ? (index === 0 ? 0 : '-60px') : '0',
                     zIndex: projects.length - index,
-                    cursor: (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default',
+                    cursor: 'pointer',
                     position: isMobile ? 'absolute' : 'relative',
                   }}
-                  onClick={() => {
-                    if (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
-                      setSelectedProject(project);
-                    }
-                  }}
+                  onClick={() => setSelectedProject(project)}
                 >
-                  {/* Shine overlay */}
                   <div className="card-shine" />
-
-                  {/* Logo */}
                   <div className="card-logo-wrapper">
-                    <img
-                      src={project.logo}
-                      alt={project.title}
-                      className="card-logo"
-                    />
+                    <img src={project.logo} alt={project.title} className="card-logo" />
                   </div>
-
-                  {/* Hover title pill */}
                   <div className="card-title-pill">
                     <span>{project.title}</span>
-                    {(project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M15 3h6v6" />
-                        <path d="M9 21H3v-6" />
-                        <path d="M21 3l-7 7" />
-                        <path d="M3 21l7-7" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                      </svg>
-                    )}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="M21 3l-7 7" /><path d="M3 21l7-7" />
+                    </svg>
                   </div>
                 </motion.div>
               );
@@ -318,7 +275,6 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
         </div>
       </section>
 
-      {/* Render Modal */}
       <AnimatePresence>
         {selectedProject && (
           <motion.div
@@ -334,22 +290,15 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()} // Arkaya tıklanınca kapanması için
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="render-modal-header">
                 {projectLinks[selectedProject.id] ? (
-                  <a
-                    href={projectLinks[selectedProject.id]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
+                  <a href={projectLinks[selectedProject.id]} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {selectedProject.title}
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        <polyline points="15 3 21 3 21 9" />
-                        <line x1="10" y1="14" x2="21" y2="3" />
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                       </svg>
                     </h3>
                   </a>
@@ -358,13 +307,11 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                 )}
                 <button className="render-modal-close" onClick={() => setSelectedProject(null)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
                 </button>
               </div>
 
-              {/* Gamestein Sub-Navigation (Category Folders) */}
               {selectedProject.id === 2 && (
                 <div className="render-category-tabs">
                   {[
@@ -372,11 +319,7 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                     { id: 'fruits', label: t.work.categories.fruits, icon: 'M12 22c4.97 0 9-3.582 9-8s-4.03-8-9-8-9 3.582-9 8 4.03 8 9 8z M12 6V2' },
                     { id: 'characters', label: t.work.categories.characters, icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8z' }
                   ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      className={`category-tab ${gamesteinCategory === cat.id ? 'active' : ''}`}
-                      onClick={() => setGamesteinCategory(cat.id as any)}
-                    >
+                    <button key={cat.id} className={`category-tab ${gamesteinCategory === cat.id ? 'active' : ''}`} onClick={() => setGamesteinCategory(cat.id as any)}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d={cat.icon} />
                       </svg>
@@ -389,41 +332,17 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
               <div className={`render-cards-grid ${selectedProject?.id === 5 ? 'grid-3x2' : ''}`}>
                 {selectedProject.id === 1 && Array.from({ length: 11 }, (_, i) => i + 1).map((num) => (
                   <div key={`ues-${num}`} className="render-card hover-swap-card molecube-card">
-                    <img
-                      src={`/renders/ues/${num}clay.png`}
-                      alt={`UES Clay Render ${num}`}
-                      className="render-card-img img-hover"
-                    />
-                    <img
-                      src={`/renders/ues/${num}texture.png`}
-                      alt={`UES Texture Render ${num}`}
-                      className="render-card-img img-default"
-                    />
+                    <img src={`/renders/ues/${num}clay.png`} alt={`UES Clay ${num}`} className="render-card-img img-hover" />
+                    <img src={`/renders/ues/${num}texture.png`} alt={`UES Texture ${num}`} className="render-card-img img-default" />
                   </div>
                 ))}
 
-                {selectedProject.id === 6 && (
-                  <ScratchReveal
-                    claySrc="/renders/clay.png"
-                    textureSrc="/renders/texture.png"
-                    lang={lang}
-                  />
-                )}
+                {selectedProject.id === 6 && <ScratchReveal claySrc="/renders/clay.png" textureSrc="/renders/texture.png" lang={lang} />}
 
                 {selectedProject.id === 4 && [1, 2, 3].map((num) => (
                   <div key={`ibras-${num}`} className="render-card hover-swap-card molecube-card">
-                    {/* Hover Yapıldığında Görünecek Görsel (Clay) - Alta Yerleştirilir */}
-                    <img
-                      src={`/renders/ibras/${num}clay.png`}
-                      alt={`İbraş Clay Render ${num}`}
-                      className="render-card-img img-hover"
-                    />
-                    {/* Varsayılan Görsel (Texture) - Üste Yerleştirilir ve Hover'da Silikleşir */}
-                    <img
-                      src={`/renders/ibras/${num}texture.png`}
-                      alt={`İbraş Texture Render ${num}`}
-                      className="render-card-img img-default"
-                    />
+                    <img src={`/renders/ibras/${num}clay.png`} alt={`İbraş Clay ${num}`} className="render-card-img img-hover" />
+                    <img src={`/renders/ibras/${num}texture.png`} alt={`İbraş Texture ${num}`} className="render-card-img img-default" />
                   </div>
                 ))}
 
@@ -431,30 +350,14 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                   <>
                     {gamesteinCategory === 'buildings' && Array.from({ length: 16 }, (_, i) => i + 12).map((num) => (
                       <div key={`gs-buildings-${num}`} className="render-card molecube-card hover-swap-card">
-                        <img
-                          src={`/renders/gamestein/buildings/${num}clay.png`}
-                          alt={`Building Clay ${num}`}
-                          className="render-card-img img-hover"
-                        />
-                        <img
-                          src={`/renders/gamestein/buildings/${num}texture.png`}
-                          alt={`Building Texture ${num}`}
-                          className="render-card-img img-default"
-                        />
+                        <img src={`/renders/gamestein/buildings/${num}clay.png`} alt={`Building Clay ${num}`} className="render-card-img img-hover" />
+                        <img src={`/renders/gamestein/buildings/${num}texture.png`} alt={`Building Texture ${num}`} className="render-card-img img-default" />
                       </div>
                     ))}
                     {gamesteinCategory === 'fruits' && Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
                       <div key={`gs-fruits-${num}`} className="render-card molecube-card hover-swap-card">
-                        <img
-                          src={`/renders/gamestein/fruits/f${num}clay.png`}
-                          alt={`Fruit Clay ${num}`}
-                          className="render-card-img img-hover"
-                        />
-                        <img
-                          src={`/renders/gamestein/fruits/f${num}texture.png`}
-                          alt={`Fruit Texture ${num}`}
-                          className="render-card-img img-default"
-                        />
+                        <img src={`/renders/gamestein/fruits/f${num}clay.png`} alt={`Fruit Clay ${num}`} className="render-card-img img-hover" />
+                        <img src={`/renders/gamestein/fruits/f${num}texture.png`} alt={`Fruit Texture ${num}`} className="render-card-img img-default" />
                       </div>
                     ))}
                     {gamesteinCategory === 'characters' && [
@@ -462,15 +365,7 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                       { title: "Mano(Gamestein)", id: "60ccfedcd1184282aa75bbde7702403a" }
                     ].map((model) => (
                       <div key={model.id} className="render-card molecube-card" style={{ cursor: 'default' }}>
-                        <div className="sketchfab-embed-wrapper" style={{ width: '100%', height: '100%' }}>
-                          <iframe
-                            title={model.title}
-                            src={`https://sketchfab.com/models/${model.id}/embed?autostart=1&preload=1`}
-                            allowFullScreen
-                            allow="autoplay; fullscreen; xr-spatial-tracking; web-share"
-                            style={{ width: '100%', height: '100%', border: 'none' }}
-                          />
-                        </div>
+                        <iframe title={model.title} src={`https://sketchfab.com/models/${model.id}/embed?autostart=1&preload=1`} allowFullScreen allow="autoplay; fullscreen; xr-spatial-tracking; web-share" style={{ width: '100%', height: '100%', border: 'none' }} />
                       </div>
                     ))}
                   </>
@@ -478,16 +373,8 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
 
                 {selectedProject.id === 3 && [1, 2, 3, 4, 5].map((num) => (
                   <div key={`bionluk-${num}`} className="render-card molecube-card hover-swap-card">
-                    <img
-                      src={`/renders/bionluk/${num}clay.png`}
-                      alt={`Bionluk Clay Render ${num}`}
-                      className="render-card-img img-hover"
-                    />
-                    <img
-                      src={`/renders/bionluk/${num}texture.png`}
-                      alt={`Bionluk Texture Render ${num}`}
-                      className="render-card-img img-default"
-                    />
+                    <img src={`/renders/bionluk/${num}clay.png`} alt={`Bionluk Clay ${num}`} className="render-card-img img-hover" />
+                    <img src={`/renders/bionluk/${num}texture.png`} alt={`Bionluk Texture ${num}`} className="render-card-img img-default" />
                   </div>
                 ))}
 
@@ -500,46 +387,21 @@ export function FeaturedWorks({ lang }: FeaturedWorksProps) {
                   { name: 'corner', tex: '_texture', clay: '_clay' }
                 ].map((item) => (
                   <div key={`takeover-${item.name}`} className="render-card molecube-card hover-swap-card">
-                    <img
-                      src={`/renders/takeover/${item.name}${item.clay}.png`}
-                      alt={`${item.name} Clay Render`}
-                      className="render-card-img img-hover"
-                    />
-                    <img
-                      src={`/renders/takeover/${item.name}${item.tex}.png`}
-                      alt={`${item.name} Texture Render`}
-                      className="render-card-img img-default"
-                    />
+                    <img src={`/renders/takeover/${item.name}${item.clay}.png`} alt={`${item.name} Clay`} className="render-card-img img-hover" />
+                    <img src={`/renders/takeover/${item.name}${item.tex}.png`} alt={`${item.name} Texture`} className="render-card-img img-default" />
                   </div>
                 ))}
 
                 {selectedProject.id === 7 && ['batman', 'fc', 'harry', 'starwars'].map((name) => (
                   <div key={`molecube-${name}`} className="render-card molecube-card hover-swap-card">
-                    <img
-                      src={`/renders/Molecube/${name}_clay.png`}
-                      alt={`${name} Clay Render`}
-                      className="render-card-img img-hover"
-                      onError={(e) => {
-                        // Eğer clay görseli yoksa grayscale filtre ile simüle et (fallback)
-                        (e.target as HTMLImageElement).style.filter = 'grayscale(1) brightness(0.7)';
-                        (e.target as HTMLImageElement).src = `/renders/Molecube/${name}.png`;
-                      }}
-                    />
-                    <img
-                      src={`/renders/Molecube/${name}.png`}
-                      alt={`${name} Texture Render`}
-                      className="render-card-img img-default"
-                    />
+                    <img src={`/renders/Molecube/${name}_clay.png`} alt={`${name} Clay`} className="render-card-img img-hover" />
+                    <img src={`/renders/Molecube/${name}.png`} alt={`${name} Texture`} className="render-card-img img-default" />
                   </div>
                 ))}
 
                 {selectedProject.id === 8 && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
                   <div key={`unity-${num}`} className="render-card">
-                    <img
-                      src={`/renders/unity/${num}.png`}
-                      alt={`Unity Render ${num}`}
-                      className="render-card-img"
-                    />
+                    <img src={`/renders/unity/${num}.png`} alt={`Unity Render ${num}`} className="render-card-img" />
                   </div>
                 ))}
               </div>

@@ -29,7 +29,6 @@ export function About({ lang }: AboutProps) {
         videoRef.current.volume = 1;
         videoRef.current.currentTime = 0;
         videoRef.current.play().then(() => {
-          // Video oynamaya başladığında (ses hazır olduğunda) gösterimi başlat
           setJumpscareStep('video');
         }).catch(err => {
           console.error("Video play failed:", err);
@@ -91,7 +90,7 @@ export function About({ lang }: AboutProps) {
             objectFit: 'cover',
             display: jumpscareStep === 'video' ? 'block' : 'none' 
           }}
-          onEnded={() => setJumpscareStep('text')}
+          onEnded={handleVideoEnded}
         />
 
         {jumpscareStep === 'text' && (

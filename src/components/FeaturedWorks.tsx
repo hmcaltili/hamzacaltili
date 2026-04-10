@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { translations } from '../translations';
+import type { Lang } from '../translations';
 
 interface Project {
   id: number;
@@ -29,10 +31,11 @@ const projectLinks: Record<number, string> = {
   3: "https://bionluk.com/hmcaltili"
 };
 
-function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: string }) {
+function ScratchReveal({ claySrc, textureSrc, lang }: { claySrc: string, textureSrc: string, lang: Lang }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const objectPixelsRef = useRef<number[]>([]);
+  const t = translations[lang];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -178,16 +181,21 @@ function ScratchReveal({ claySrc, textureSrc }: { claySrc: string, textureSrc: s
           animate={{ scale: 1, opacity: 1 }}
           className={`scratch-hint ${isCompleted ? 'completed-text' : ''}`}
         >
-          {isCompleted ? "THANK YOU" : "COLORIZE MY RENDER"}
+          {isCompleted ? t.work.thanks : t.work.colorize}
         </motion.div>
       </div>
     </div>
   );
 }
 
-export function FeaturedWorks() {
+interface FeaturedWorksProps {
+  lang: Lang;
+}
+
+export function FeaturedWorks({ lang }: FeaturedWorksProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [gamesteinCategory, setGamesteinCategory] = useState<'buildings' | 'fruits' | 'characters'>('buildings');
+  const t = translations[lang];
 
   // Modal açıkken body scroll'unu kilitle
   useEffect(() => {
@@ -212,7 +220,7 @@ export function FeaturedWorks() {
             viewport={{ once: true }}
             className="featured-works-title"
           >
-            WORK
+            {t.work.title}
           </motion.h2>
 
           <div className="card-stack-wrapper">
@@ -228,10 +236,10 @@ export function FeaturedWorks() {
                   backgroundColor: project.bgColor,
                   marginLeft: index === 0 ? 0 : '-60px',
                   zIndex: projects.length - index,
-                  cursor: (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default'
+                  cursor: (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? 'pointer' : 'default'
                 }}
                 onClick={() => {
-                  if (project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
+                  if (project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) {
                     setSelectedProject(project);
                   }
                 }}
@@ -251,7 +259,7 @@ export function FeaturedWorks() {
                 {/* Hover title pill */}
                 <div className="card-title-pill">
                   <span>{project.title}</span>
-                  {(project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
+                  {(project.id === 1 || project.id === 6 || project.id === 4 || project.id === 7 || project.id === 8 || project.id === 5 || project.id === 3 || project.id === 2) ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M15 3h6v6" />
                       <path d="M9 21H3v-6" />
@@ -321,9 +329,9 @@ export function FeaturedWorks() {
               {selectedProject.id === 2 && (
                 <div className="render-category-tabs">
                   {[
-                    { id: 'buildings', label: 'Buildings', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-                    { id: 'fruits', label: 'Fruits', icon: 'M12 22c4.97 0 9-3.582 9-8s-4.03-8-9-8-9 3.582-9 8 4.03 8 9 8z M12 6V2' },
-                    { id: 'characters', label: 'Characters', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8z' }
+                    { id: 'buildings', label: t.work.categories.buildings, icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+                    { id: 'fruits', label: t.work.categories.fruits, icon: 'M12 22c4.97 0 9-3.582 9-8s-4.03-8-9-8-9 3.582-9 8 4.03 8 9 8z M12 6V2' },
+                    { id: 'characters', label: t.work.categories.characters, icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8z' }
                   ].map((cat) => (
                     <button
                       key={cat.id}
@@ -340,10 +348,26 @@ export function FeaturedWorks() {
               )}
 
               <div className={`render-cards-grid ${selectedProject?.id === 5 ? 'grid-3x2' : ''}`}>
+                {selectedProject.id === 1 && Array.from({ length: 11 }, (_, i) => i + 1).map((num) => (
+                  <div key={`ues-${num}`} className="render-card hover-swap-card molecube-card">
+                    <img
+                      src={`/renders/ues/${num}clay.png`}
+                      alt={`UES Clay Render ${num}`}
+                      className="render-card-img img-hover"
+                    />
+                    <img
+                      src={`/renders/ues/${num}texture.png`}
+                      alt={`UES Texture Render ${num}`}
+                      className="render-card-img img-default"
+                    />
+                  </div>
+                ))}
+
                 {selectedProject.id === 6 && (
                   <ScratchReveal
                     claySrc="/renders/clay.png"
                     textureSrc="/renders/texture.png"
+                    lang={lang}
                   />
                 )}
 
@@ -366,7 +390,7 @@ export function FeaturedWorks() {
 
                 {selectedProject.id === 2 && (
                   <>
-                    {gamesteinCategory === 'buildings' && Array.from({ length: 27 }, (_, i) => i + 1).map((num) => (
+                    {gamesteinCategory === 'buildings' && Array.from({ length: 16 }, (_, i) => i + 12).map((num) => (
                       <div key={`gs-buildings-${num}`} className="render-card molecube-card hover-swap-card">
                         <img
                           src={`/renders/gamestein/buildings/${num}clay.png`}

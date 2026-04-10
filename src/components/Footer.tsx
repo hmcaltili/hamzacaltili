@@ -1,4 +1,12 @@
-export function Footer() {
+import { translations } from '../translations';
+import type { Lang } from '../translations';
+
+interface FooterProps {
+  lang: Lang;
+}
+
+export function Footer({ lang }: FooterProps) {
+  const t = translations[lang];
   return (
     <footer className="main-footer">
       <div className="footer-container">
@@ -9,7 +17,7 @@ export function Footer() {
             {/* Repeated text for continuous scroll */}
             {[...Array(6)].map((_, i) => (
               <div key={i} className="marquee-item">
-                3D ARTIST / GRAPHIC DESIGNER <span className="marquee-dot">•</span>
+                {t.footer.role} <span className="marquee-dot">•</span>
               </div>
             ))}
           </div>

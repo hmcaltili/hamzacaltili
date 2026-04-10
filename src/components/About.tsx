@@ -1,9 +1,16 @@
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
+import { translations } from '../translations';
+import type { Lang } from '../translations';
 
-export function About() {
+interface AboutProps {
+  lang: Lang;
+}
+
+export function About({ lang }: AboutProps) {
   const [jumpscareStep, setJumpscareStep] = useState<'idle' | 'video' | 'text'>('idle');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const t = translations[lang];
 
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.checked) {
@@ -80,9 +87,9 @@ export function About() {
             style={{ textAlign: 'center', padding: '2rem' }}
           >
             <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', marginBottom: '1rem', color: '#ffffff' }}>
-              I told you my favorite game was <span style={{ color: '#ff1818' }}>Five Nights at Freddy's :)</span>
+              {t.about.jumpscareTitle} <span style={{ color: '#ff1818' }}>Five Nights at Freddy's :)</span>
             </h2>
-            <p style={{ opacity: 0.5, fontStyle: 'italic' }}>Click anywhere to return</p>
+            <p style={{ opacity: 0.5, fontStyle: 'italic' }}>{t.about.jumpscareReturn}</p>
           </motion.div>
         )}
       </div>
@@ -96,7 +103,7 @@ export function About() {
             viewport={{ once: true }}
             className="about-title"
           >
-            ABOUT
+            {t.about.title}
           </motion.h2>
 
           <motion.div
@@ -106,18 +113,10 @@ export function About() {
             viewport={{ once: true }}
             className="about-content"
           >
-            <p>
-              I’m Hamza Mücahit Çaltılı, a 3D Artist with about four years of active experience in the 3D art world.
-            </p>
-            <p>
-              I don't just build models; I am passionate about the entire technical pipeline, from rigging to animation, and I truly enjoy sharing that knowledge through teaching. Throughout my career, I’ve worked on a diverse range of projects—from educational games and NFT collections to hybrid-casual mobile titles. I thrive in collaborative environments where I can work closely with game designers to produce optimized, high-quality low-poly assets that enhance the overall player experience.
-            </p>
-            <p>
-              I am excited about the possibility of bringing my technical skills and creative energy to your team. You can find examples of my work on Work Section. By the way, my favorite game is Five Nights at Freddy's :)
-            </p>
-            <p>
-              I look forward to hearing from you!
-            </p>
+            <p>{t.about.bio1}</p>
+            <p>{t.about.bio2}</p>
+            <p>{t.about.bio3}</p>
+            <p>{t.about.bio4}</p>
           </motion.div>
 
           <motion.div
@@ -127,7 +126,7 @@ export function About() {
             viewport={{ once: true }}
             className="about-softwares"
           >
-            <h3>Softwares That I Use</h3>
+            <h3>{t.about.softwareTitle}</h3>
             <div className="softwares-grid">
               {[1, 6, 3, 2, 4, 5].map(num => (
                 <img 
@@ -153,7 +152,7 @@ export function About() {
             </label>
           </div>
           <p style={{ marginTop: '1.5rem', opacity: 0.6, fontStyle: 'italic', fontSize: '0.9rem' }}>
-            Don't forget to turn the lights off before you leave!
+            {t.about.lightHint}
           </p>
 
         </div>
